@@ -1,0 +1,5 @@
+# Environment 'development', 'test', or 'production'
+ENV=development
+APP_VERSION=0.0.1
+
+APP_LOG_LEVEL=INFO

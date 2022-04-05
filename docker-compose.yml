@@ -1,0 +1,14 @@
+# Build image
+# `docker-compose -f docker-compose.yml build`
+# Push to registry
+# `docker-compose -f docker-compose.yml push`
+
+version: '3.8'
+
+services:
+
+  docker-flask-template:
+    image: registry.lts.harvard.edu/lts/docker-flask-template:0.0.1
+    build:
+      context: .
+      dockerfile: DockerfilePub

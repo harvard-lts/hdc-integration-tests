@@ -1,0 +1,27 @@
+# Start: `docker-compose -f docker-compose-local.yml up -d --build --force-recreate`
+# Stop: `docker-compose -f docker-compose-local.yml stop`
+
+version: '3.8'
+
+services:
+
+  docker-flask-template:
+    container_name: 'docker-flask-template'
+    build:
+      context: './'
+      dockerfile: 'DockerfileLocal'
+    volumes:
+      - './:/home/appuser'
+    env_file:
+      - '.env'
+    ports:
+      - '3001:8443'
+    # Join this service to a custom docker network
+    networks:
+      - docker-flask-template-net
+
+
+  # Create a custom docker network if it does not exist already
+networks:
+  docker-flask-template-net:
+    name: docker-flask-template-net
