@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y vim libpq-dev gcc supervisor python3-pi
   pip install --upgrade pip && \
   pip install gunicorn && \
   pip install -r /tmp/requirements.txt -i https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ && \
-  useradd --create-home appuser
+  groupadd -r -g 55020 appuser && \
+  useradd -u 55020 -g 55020 --create-home appuser
 
 COPY --chown=appuser . /home/appuser
 
@@ -40,7 +41,6 @@ RUN rm -f /etc/nginx/sites-enabled/default && \
 
 # Supervisor to run and manage multiple apps in the same container
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 
 WORKDIR /home/appuser
 

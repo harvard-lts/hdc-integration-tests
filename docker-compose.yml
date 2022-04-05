@@ -7,8 +7,8 @@ version: '3.8'
 
 services:
 
-  docker-flask-template:
-    image: registry.lts.harvard.edu/lts/docker-flask-template:0.0.1
+  hdc-integration-tests:
+    image: registry.lts.harvard.edu/lts/hdc-integration-tests:0.0.1
     build:
       context: .
-      dockerfile: DockerfilePub
+      dockerfile: Dockerfile

@@ -6,8 +6,8 @@ import os, json
 #from . import <class> <class>
 
 def define_resources(app):
-    api = Api(app, version='1.0', title='Docker Flask Template', description='This project will create a generic, Dockerized, Flask application ready for action!')
-    dashboard = api.namespace('/', description="This project will create a generic, Dockerized, Flask application ready for action!")
+    api = Api(app, version='1.0', title='HDC Integration Tests', description='This project contains the integration tests for the HDC project')
+    dashboard = api.namespace('/', description="This project contains the integration tests for the HDC project")
 
     # Heartbeat/health check route
     @dashboard.route('/version', endpoint="version", methods=['GET'])
