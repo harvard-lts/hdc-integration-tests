@@ -1,9 +1,8 @@
 FROM python:3.8-slim-buster
+
 COPY requirements.txt /tmp/
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update && apt-get install -y vim libpq-dev gcc supervisor python3-pip openssl nginx curl && \
+RUN apt-get update && apt-get install -y curl libpq-dev gcc python-dev supervisor nginx && \
   mkdir -p /etc/nginx/ssl/ && \
   openssl req \
           -x509 \
@@ -17,14 +16,15 @@ RUN apt-get update && apt-get install -y vim libpq-dev gcc supervisor python3-pi
   chmod -R 755 /etc/nginx/ssl/ && \
   pip install --upgrade pip && \
   pip install gunicorn && \
-  pip install -r /tmp/requirements.txt -i https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ && \
+  pip install --upgrade --force-reinstall -r /tmp/requirements.txt -i https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ &&\
   groupadd -r -g 55020 appuser && \
   useradd -u 55020 -g 55020 --create-home appuser
 
-COPY --chown=appuser . /home/appuser
+# Supervisor to run and manage multiple apps in the same container
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Guarantees umask is set properly to alleviate issue with umask not sticking inside the node container
-# This is to ensure permissions of files stored on the server will be given the correct permissions
+# Copy code into the image
+COPY --chown=appuser . /home/appuser
 
 RUN rm -f /etc/nginx/sites-enabled/default && \
     rm -f /etc/service/nginx/down && \
@@ -32,26 +32,12 @@ RUN rm -f /etc/nginx/sites-enabled/default && \
     mv /home/appuser/webapp.conf.example /etc/nginx/conf.d/webapp.conf && \
     chown appuser /etc/ssl/certs && \
     chown appuser /etc/ssl/openssl.cnf && \
-    chown -R appuser:appuser /var/log/nginx && \
-    chown -R appuser:appuser /var/lib/nginx && \
-    chown -R appuser:appuser /data && \
-    chown -R appuser:appuser /run && \
-    echo 'umask 002' >> /home/appuser/.profile && \
-    echo 'umask 002' >> /home/appuser/.bashrc
-
-# Supervisor to run and manage multiple apps in the same container
-ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+    chown -R appuser /var/log/nginx && \
+    chown -R appuser /var/lib/nginx && \
+    chown -R appuser /data && \
+    chown -R appuser /run
 
 WORKDIR /home/appuser
-
-# Update permissions for the mpsadm user and group
-COPY change_id.sh /root/change_id.sh
-RUN chmod 755 /root/change_id.sh && \
-  /root/change_id.sh -u 55001 -g 55001
-
-# Copy code into the image
-COPY --chown=appuser . /home/appuser
-
 USER appuser
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
