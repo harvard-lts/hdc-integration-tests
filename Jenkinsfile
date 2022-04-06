@@ -170,7 +170,7 @@ pipeline {
     // qa smoke tests
    }
    environment {
-    imageName = 'hdc-integration-tests'
+    imageName = 'int-tests'
     stackName = 'HDC3A'
     registryCredentialsId = "${env.REGISTRY_ID}"
     registryUri = 'https://registry.lts.harvard.edu'
