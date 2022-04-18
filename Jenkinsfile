@@ -86,6 +86,8 @@ pipeline {
                   echo "${TESTS_PASSED}"
                   if (!TESTS_PASSED.contains("\"num_failed\": 0")){
                     error "Dev trial integration tests did not pass"
+                  } else {
+                    echo "All test passed!"
                   }
                 }
               }
