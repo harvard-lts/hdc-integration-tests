@@ -81,7 +81,7 @@ pipeline {
           script {
               sshagent(credentials : ['hgl_svcupd']) {
                 script{
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/dev/health'",
+                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
                   returnStdout: true).trim()
                   echo "${TESTS_PASSED}"
                   if (!TESTS_PASSED.contains("\"num_failed\": 0")){
@@ -152,7 +152,7 @@ pipeline {
           script {
               sshagent(credentials : ['hgl_svcupd']) {
                 script{
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/dev/health'",
+                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
                   returnStdout: true).trim()
                   echo "${TESTS_PASSED}"
                   if (!TESTS_PASSED.contains("\"num_failed\": 0")){
@@ -220,7 +220,7 @@ pipeline {
           script {
               sshagent(credentials : ['qatest']) {
                 script{
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/qa/health'",
+                  TESTS_PASSED = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/apps/healthcheck'",
                   returnStdout: true).trim()
                   echo "${TESTS_PASSED}"
                   if (!TESTS_PASSED.contains("\"num_failed\": 0")){

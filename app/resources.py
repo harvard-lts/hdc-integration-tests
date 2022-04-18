@@ -17,14 +17,14 @@ def define_resources(app):
     def hello_world():
         return render_template('index.html')
 
-    @app.route('/dev/health')
-    def healthcheck_dev():
+    @app.route('/apps/healthcheck')
+    def app_healthchecks():
         num_failed_tests = 0
         tests_failed = []
         result = {"num_failed": num_failed_tests, "tests_failed": tests_failed}
 
         # Health Check Tests for DIMS
-        health = requests.get(os.environ.get('DIMS_DEV_ENDPOINT') + '/health', verify=False)
+        health = requests.get(os.environ.get('DIMS_ENDPOINT') + '/health', verify=False)
         if health.status_code != 200:
             result["num_failed"] += 1
             result["tests_failed"].append("DIMS healthcheck Dev")
@@ -32,34 +32,11 @@ def define_resources(app):
 
         # Health Check Tests for DTS
         # TODO: status_code for DTS is 404, although the health check is successful
-        health = requests.get(os.environ.get('DTS_DEV_ENDPOINT') + '/healthcheck', verify=False)
+        health = requests.get(os.environ.get('DTS_ENDPOINT') + '/healthcheck', verify=False)
         json_health = json.loads(health.text)
         if json_health["status"] != "success":
             result["num_failed"] += 1
             result["tests_failed"].append("DTS healthcheck Dev")
-            result["DTS"] = {"status_code": health.status_code, "text": health.text}
-
-        return json.dumps(result)
-
-    @app.route('/qa/health')
-    def healthcheck_qa():
-        num_failed_tests = 0
-        tests_failed = []
-        result = {"num_failed": num_failed_tests, "tests_failed": tests_failed}
-
-        # Health Check Tests for DIMS
-        health = requests.get(os.environ.get('DIMS_QA_ENDPOINT') + '/health', verify=False)
-        if health.status_code != 200:
-            result["num_failed"] += 1
-            result["tests_failed"].append("DIMS healthcheck QA")
-            result["DIMS"] = {"status_code": health.status_code, "text": health.text}
-
-        # Health Check Tests for DTS
-        health = requests.get(os.environ.get('DTS_QA_ENDPOINT') + '/healthcheck', verify=False)
-        json_health = json.loads(health.text)
-        if json_health["status"] != "success":
-            result["num_failed"] += 1
-            result["tests_failed"].append("DTS healthcheck QA")
             result["DTS"] = {"status_code": health.status_code, "text": health.text}
 
         return json.dumps(result)
