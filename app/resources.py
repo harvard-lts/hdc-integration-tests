@@ -17,14 +17,14 @@ def define_resources(app):
     def hello_world():
         return render_template('index.html')
 
-    @app.route('/integration/health')
-    def healthcheck_dims():
+    @app.route('/apps/healthcheck')
+    def app_healthchecks():
         num_failed_tests = 0
         tests_failed = []
         result = {"num_failed": num_failed_tests, "tests_failed": tests_failed}
 
         # Health Check Tests for DIMS
-        health = requests.get('https://ltsds-cloud-dev-1.lib.harvard.edu:10580/health', verify=False)
+        health = requests.get(os.environ.get('DIMS_ENDPOINT') + '/health', verify=False)
         if health.status_code != 200:
             result["num_failed"] += 1
             result["tests_failed"].append("DIMS healthcheck")
@@ -32,7 +32,7 @@ def define_resources(app):
 
         # Health Check Tests for DTS
         # TODO: status_code for DTS is 404, although the health check is successful
-        health = requests.get('https://ltsds-cloud-dev-1.lib.harvard.edu:10581/healthcheck', verify=False)
+        health = requests.get(os.environ.get('DTS_ENDPOINT') + '/healthcheck', verify=False)
         json_health = json.loads(health.text)
         if json_health["status"] != "success":
             result["num_failed"] += 1
