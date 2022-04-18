@@ -72,6 +72,26 @@ pipeline {
           }
       }
     }
+    stage('TrialDevIntegrationTest') {
+      when {
+          branch 'trial'
+        }
+      steps {
+          echo "Running integration tests on dev"
+          script {
+              sshagent(credentials : ['hgl_svcupd']) {
+                script{
+                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD-DEV}:10582/integration/health'",
+                  returnStdout: true).trim()
+                  echo "${TESTS_PASSED}"
+                  if (!${TESTS_PASSED}.contains("\"num_failed\": 0")){
+                    error "Dev trial integration tests did not pass"
+                  }
+                }
+              }
+          }
+      }
+    }
    // test that dev is running, smoke tests
     // test that dev worked
     stage('Publish main dev image') {
