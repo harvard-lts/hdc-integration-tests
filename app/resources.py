@@ -27,7 +27,7 @@ def define_resources(app):
         health = requests.get(os.environ.get('DIMS_ENDPOINT') + '/health', verify=False)
         if health.status_code != 200:
             result["num_failed"] += 1
-            result["tests_failed"].append("DIMS healthcheck Dev")
+            result["tests_failed"].append("DIMS healthcheck")
             result["DIMS"] = {"status_code": health.status_code, "text": health.text}
 
         # Health Check Tests for DTS
@@ -36,7 +36,7 @@ def define_resources(app):
         json_health = json.loads(health.text)
         if json_health["status"] != "success":
             result["num_failed"] += 1
-            result["tests_failed"].append("DTS healthcheck Dev")
+            result["tests_failed"].append("DTS healthcheck")
             result["DTS"] = {"status_code": health.status_code, "text": health.text}
 
         return json.dumps(result)
