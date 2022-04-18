@@ -81,7 +81,7 @@ pipeline {
           script {
               sshagent(credentials : ['hgl_svcupd']) {
                 script{
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD-DEV}:10582/integration/health'",
+                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/integration/health'",
                   returnStdout: true).trim()
                   echo "${TESTS_PASSED}"
                   if (!${TESTS_PASSED}.contains("\"num_failed\": 0")){
