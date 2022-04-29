@@ -4,5 +4,9 @@ APP_VERSION=0.0.1
 
 APP_LOG_LEVEL=INFO
 
-DIMS_ENDPOINT=
-DTS_ENDPOINT=
+DIMS_ENDPOINT=https://ltsds-cloud-dev-1.lib.harvard.edu:10580
+DTS_ENDPOINT=https://ltsds-cloud-dev-1.lib.harvard.edu:10581
+
+# Dataverse Vars
+DATAVERSE_ENDPOINT=http://dvn-dev-hdc.lib.harvard.edu
+ADMIN_USER_API_TOKEN=
