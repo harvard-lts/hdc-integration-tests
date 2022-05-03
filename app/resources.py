@@ -1,9 +1,16 @@
 import time
+import stomp
 
 import requests, datetime
 from flask_restx import Resource, Api
 from flask import render_template
 import os, json
+
+from stomp.utils import Frame
+
+test_message_received = False
+# Possibly try removing and see if it works
+test_message_content = ""
 
 def define_resources(app):
     api = Api(app, version='1.0', title='HDC Integration Tests', description='This project contains the integration tests for the HDC project')
@@ -60,6 +67,12 @@ def define_resources(app):
 
         headers = {"X-Dataverse-key": admin_user_token}
 
+        # Connect to transfer-ready queue
+        connection = create_mq_connection()
+        connection.set_listener('', TestConnectionListener())
+
+        time.sleep(5.0)
+
         app.logger.debug("Creating dataset")
         # Create Dataset
         create_dataset = requests.post(
@@ -111,7 +124,15 @@ def define_resources(app):
         result["info"]["Publish Dataset"] = {"status_code": publish_dataset.status_code}
 
         # Another wait for safe measure
-        time.sleep(5.0)
+        time.sleep(3.0)
+
+        await_until_message_received_or_timeout()
+
+        if not test_message_received:
+            result["num_failed"] += 1
+            result["tests_failed"].append("Message Received Not in Queue")
+        else:
+            result["info"]["Message Received in Queue"] = "Message Received!" # test_message_content
 
         app.logger.debug("Delete dataset")
         # Delete Published Dataset
@@ -128,5 +149,41 @@ def define_resources(app):
 
         return json.dumps(result)
 
+    def create_mq_connection() -> stomp.Connection:
+        mq_host = os.getenv('MQ_TRANSFER_HOST'),
+        mq_port = os.getenv('MQ_TRANSFER_PORT'),
+        mq_user = os.getenv('MQ_TRANSFER_USER'),
+        mq_password = os.getenv('MQ_TRANSFER_PASSWORD')
+
+        connection = stomp.Connection(
+            host_and_ports=[(mq_host, mq_port)],
+            heartbeats=(40000, 40000),
+            keepalive=True
+        )
+
+        connection.set_ssl([(mq_host, mq_port)])
+
+        connection.connect(
+            mq_user,
+            mq_password,
+            wait=True
+        )
+
+        return connection
+
+    def await_until_message_received_or_timeout() -> None:
+        timeout = time.time() + 30
+        while not test_message_received and time.time() < timeout:
+            time.sleep(1)
+
+class TestConnectionListener(stomp.ConnectionListener):
+    def on_message(self, frame: Frame) -> None:
+        global test_message_received
+        # global test_message_content
+        test_message_received = True
+        # test_message_content = frame.body
+
 # Message listener for transfer-ready queue
+# Add files to Ansible for dev, qa deploys
+
 # Check S3 for export - delete after verified
