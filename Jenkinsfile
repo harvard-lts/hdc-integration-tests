@@ -244,13 +244,25 @@ pipeline {
    }
    post {
         fixed {
-            slackSend color: "##77caed", message: "Build Fixed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+            script {
+                if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
+                    slackSend color: "##77caed", message: "Build Fixed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+                }
+            }
         }
         failure {
-            slackSend color: "danger", message: "Build Failed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+            script {
+                if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
+                    slackSend color: "danger", message: "Build Failed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+                }
+            }
         }
         success {
-            slackSend color: "good", message: "Build Succeeded: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+            script {
+                if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
+                    slackSend color: "good", message: "Build Succeeded: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+                }
+            }
         }
     }
    environment {
