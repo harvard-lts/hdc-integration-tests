@@ -259,9 +259,9 @@ pipeline {
         }
         success {
             script {
-                if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
+                //if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
                     slackSend channel: "#hdc-3a, #lts-jenkins-notifications", color: "good", message: "Build Succeeded: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
-                }
+                //}
             }
         }
     }
