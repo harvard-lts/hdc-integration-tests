@@ -246,21 +246,21 @@ pipeline {
         fixed {
             script {
                 if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
-                    slackSend channel: "#hdc-3a, #lts-jenkins-notifications", color: "##77caed", message: "Build Fixed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+                    slackSend channel: "#hdc-3a", color: "##77caed", message: "Build Fixed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
                 }
             }
         }
         failure {
             script {
                 if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
-                    slackSend channel: "#hdc-3a, #lts-jenkins-notifications", color: "danger", message: "Build Failed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+                    slackSend channel: "#hdc-3a", color: "danger", message: "Build Failed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
                 }
             }
         }
         success {
             script {
                 if(env.BRANCH_NAME == "main" || env.BRANCH_NAME == "trial") {
-                    slackSend channel: "#hdc-3a, #lts-jenkins-notifications", color: "good", message: "Build Succeeded: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
+                    slackSend channel: "#hdc-3a", color: "good", message: "Build Succeeded: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
                 }
             }
         }
