@@ -1,19 +1,14 @@
 import time
-import stomp
 
-import requests, datetime
+import requests
 from flask_restx import Resource, Api
 from flask import render_template
 import os, json
 
-from stomp.utils import Frame
-
-test_message_received = False
-# Possibly try removing and see if it works
-test_message_content = ""
 
 def define_resources(app):
-    api = Api(app, version='1.0', title='HDC Integration Tests', description='This project contains the integration tests for the HDC project')
+    api = Api(app, version='1.0', title='HDC Integration Tests',
+              description='This project contains the integration tests for the HDC project')
     dashboard = api.namespace('/', description="This project contains the integration tests for the HDC project")
 
     # Heartbeat/health check route
@@ -22,6 +17,7 @@ def define_resources(app):
         def get(self):
             version = os.environ.get('APP_VERSION', "NOT FOUND")
             return {"version": version}
+
     @app.route('/hello-world')
     def hello_world():
         return render_template('index.html')
@@ -67,12 +63,6 @@ def define_resources(app):
 
         headers = {"X-Dataverse-key": admin_user_token}
 
-        # Connect to transfer-ready queue
-        connection = create_mq_connection()
-        connection.set_listener('', TestConnectionListener())
-
-        time.sleep(5.0)
-
         app.logger.debug("Creating dataset")
         # Create Dataset
         create_dataset = requests.post(
@@ -84,7 +74,8 @@ def define_resources(app):
         if json_create_dataset["status"] != "OK":
             result["num_failed"] += 1
             result["tests_failed"].append("Create Dataset")
-            result["Failed Create Dataset"] = {"status_code": create_dataset.status_code, "text": json_create_dataset["message"]}
+            result["Failed Create Dataset"] = {"status_code": create_dataset.status_code,
+                                               "text": json_create_dataset["message"]}
         dataset_id = json_create_dataset["data"]["id"]
         persistent_id = json_create_dataset["data"]["persistentId"]
         result["info"]["persistentId"] = persistent_id
@@ -120,19 +111,12 @@ def define_resources(app):
         if json_publish_dataset["status"] != "OK":
             result["num_failed"] += 1
             result["tests_failed"].append("Publish Dataset")
-            result["Failed Publish Dataset"] = {"status_code": publish_dataset.status_code, "text": json_publish_dataset["message"]}
+            result["Failed Publish Dataset"] = {"status_code": publish_dataset.status_code,
+                                                "text": json_publish_dataset["message"]}
         result["info"]["Publish Dataset"] = {"status_code": publish_dataset.status_code}
 
         # Another wait for safe measure
         time.sleep(3.0)
-
-        await_until_message_received_or_timeout()
-
-        if not test_message_received:
-            result["num_failed"] += 1
-            result["tests_failed"].append("Message Received Not in Queue")
-        else:
-            result["info"]["Message Received in Queue"] = "Message Received!" # test_message_content
 
         app.logger.debug("Delete dataset")
         # Delete Published Dataset
@@ -144,46 +128,8 @@ def define_resources(app):
         if json_delete_published_ds["status"] != "OK":
             result["num_failed"] += 1
             result["tests_failed"].append("Delete Published Dataset")
-            result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code, "text": json_delete_published_ds["message"]}
+            result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code,
+                                                         "text": json_delete_published_ds["message"]}
         result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
 
         return json.dumps(result)
-
-    def create_mq_connection() -> stomp.Connection:
-        mq_host = os.getenv('MQ_TRANSFER_HOST'),
-        mq_port = os.getenv('MQ_TRANSFER_PORT'),
-        mq_user = os.getenv('MQ_TRANSFER_USER'),
-        mq_password = os.getenv('MQ_TRANSFER_PASSWORD')
-
-        connection = stomp.Connection(
-            host_and_ports=[(mq_host, mq_port)],
-            heartbeats=(40000, 40000),
-            keepalive=True
-        )
-
-        connection.set_ssl([(mq_host, mq_port)])
-
-        connection.connect(
-            mq_user,
-            mq_password,
-            wait=True
-        )
-
-        return connection
-
-    def await_until_message_received_or_timeout() -> None:
-        timeout = time.time() + 30
-        while not test_message_received and time.time() < timeout:
-            time.sleep(1)
-
-class TestConnectionListener(stomp.ConnectionListener):
-    def on_message(self, frame: Frame) -> None:
-        global test_message_received
-        # global test_message_content
-        test_message_received = True
-        # test_message_content = frame.body
-
-# Message listener for transfer-ready queue
-# Add files to Ansible for dev, qa deploys
-
-# Check S3 for export - delete after verified
