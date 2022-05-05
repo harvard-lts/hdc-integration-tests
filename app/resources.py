@@ -67,9 +67,9 @@ def define_resources(app):
 
         headers = {"X-Dataverse-key": admin_user_token}
 
-        # Connect to transfer-ready queue
-        connection = create_mq_connection()
-        connection.set_listener('', TestConnectionListener())
+        # # Connect to transfer-ready queue
+        # connection = create_mq_connection()
+        # connection.set_listener('', TestConnectionListener())
 
         time.sleep(5.0)
 
@@ -126,26 +126,26 @@ def define_resources(app):
         # Another wait for safe measure
         time.sleep(3.0)
 
-        await_until_message_received_or_timeout()
+        # await_until_message_received_or_timeout()
+        #
+        # if not test_message_received:
+        #     result["num_failed"] += 1
+        #     result["tests_failed"].append("Message Received Not in Queue")
+        # else:
+        #     result["info"]["Message Received in Queue"] = "Message Received!" # test_message_content
 
-        if not test_message_received:
-            result["num_failed"] += 1
-            result["tests_failed"].append("Message Received Not in Queue")
-        else:
-            result["info"]["Message Received in Queue"] = "Message Received!" # test_message_content
-
-        app.logger.debug("Delete dataset")
-        # Delete Published Dataset
-        delete_published_ds = requests.delete(
-            dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
-            headers=headers,
-            verify=False)
-        json_delete_published_ds = delete_published_ds.json()
-        if json_delete_published_ds["status"] != "OK":
-            result["num_failed"] += 1
-            result["tests_failed"].append("Delete Published Dataset")
-            result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code, "text": json_delete_published_ds["message"]}
-        result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
+        # app.logger.debug("Delete dataset")
+        # # Delete Published Dataset
+        # delete_published_ds = requests.delete(
+        #     dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
+        #     headers=headers,
+        #     verify=False)
+        # json_delete_published_ds = delete_published_ds.json()
+        # if json_delete_published_ds["status"] != "OK":
+        #     result["num_failed"] += 1
+        #     result["tests_failed"].append("Delete Published Dataset")
+        #     result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code, "text": json_delete_published_ds["message"]}
+        # result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
 
         return json.dumps(result)
 
