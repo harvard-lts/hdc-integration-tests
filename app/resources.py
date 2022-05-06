@@ -1,10 +1,14 @@
+import time
+
 import requests
 from flask_restx import Resource, Api
 from flask import render_template
 import os, json
 
+
 def define_resources(app):
-    api = Api(app, version='1.0', title='HDC Integration Tests', description='This project contains the integration tests for the HDC project')
+    api = Api(app, version='1.0', title='HDC Integration Tests',
+              description='This project contains the integration tests for the HDC project')
     dashboard = api.namespace('/', description="This project contains the integration tests for the HDC project")
 
     # Heartbeat/health check route
@@ -13,6 +17,7 @@ def define_resources(app):
         def get(self):
             version = os.environ.get('APP_VERSION', "NOT FOUND")
             return {"version": version}
+
     @app.route('/hello-world')
     def hello_world():
         return render_template('index.html')
@@ -38,5 +43,93 @@ def define_resources(app):
             result["num_failed"] += 1
             result["tests_failed"].append("DTS healthcheck")
             result["DTS"] = {"status_code": health.status_code, "text": health.text}
+
+        return json.dumps(result)
+
+    @app.route('/DIMS/DVIngest')
+    def dims_ingest_dv():
+        num_failed_tests = 0
+        tests_failed = []
+        result = {"num_failed": num_failed_tests, "tests_failed": tests_failed, "info": {}}
+        dataverse_endpoint = os.environ.get('DATAVERSE_ENDPOINT')
+        admin_user_token = os.environ.get('ADMIN_USER_API_TOKEN')
+
+        app.logger.debug("Loading dataset dictionary")
+        with open('/home/appuser/test_data/dataset-finch1.json') as dataset:
+            data = dataset.read()
+
+        # reconstructing the data as a dictionary
+        random_dataset = json.loads(data)
+
+        headers = {"X-Dataverse-key": admin_user_token}
+
+        app.logger.debug("Creating dataset")
+        # Create Dataset
+        create_dataset = requests.post(
+            dataverse_endpoint + '/api/dataverses/archived/datasets',
+            json=random_dataset,
+            headers=headers,
+            verify=False)
+        json_create_dataset = create_dataset.json()
+        if json_create_dataset["status"] != "OK":
+            result["num_failed"] += 1
+            result["tests_failed"].append("Create Dataset")
+            result["Failed Create Dataset"] = {"status_code": create_dataset.status_code,
+                                               "text": json_create_dataset["message"]}
+        dataset_id = json_create_dataset["data"]["id"]
+        persistent_id = json_create_dataset["data"]["persistentId"]
+        result["info"]["persistentId"] = persistent_id
+        result["info"]["datasetId"] = dataset_id
+        result["info"]["Create Dataset"] = {"status_code": create_dataset.status_code}
+
+        app.logger.debug("Publishing dataset")
+        # Publish Dataset
+        publish_dataset = requests.post(
+            dataverse_endpoint
+            + '/api/datasets/:persistentId/actions/:publish?persistentId='
+            + persistent_id
+            + '&type=major'
+            + '&assureIsIndexed=true',
+            headers=headers,
+            verify=False)
+        json_publish_dataset = publish_dataset.json()
+
+        # Wait for changes to take effect
+        while publish_dataset.status_code != 200 and json_publish_dataset["message"] == "Dataset is awaiting indexing":
+            app.logger.debug("Waiting in while loop dataset")
+            time.sleep(3.0)
+            publish_dataset = requests.post(
+                dataverse_endpoint
+                + '/api/datasets/:persistentId/actions/:publish?persistentId='
+                + persistent_id
+                + '&type=major'
+                + '&assureIsIndexed=true',
+                headers=headers,
+                verify=False)
+            json_publish_dataset = publish_dataset.json()
+
+        if json_publish_dataset["status"] != "OK":
+            result["num_failed"] += 1
+            result["tests_failed"].append("Publish Dataset")
+            result["Failed Publish Dataset"] = {"status_code": publish_dataset.status_code,
+                                                "text": json_publish_dataset["message"]}
+        result["info"]["Publish Dataset"] = {"status_code": publish_dataset.status_code}
+
+        # Another wait for safe measure
+        time.sleep(3.0)
+
+        app.logger.debug("Delete dataset")
+        # Delete Published Dataset
+        delete_published_ds = requests.delete(
+            dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
+            headers=headers,
+            verify=False)
+        json_delete_published_ds = delete_published_ds.json()
+        if json_delete_published_ds["status"] != "OK":
+            result["num_failed"] += 1
+            result["tests_failed"].append("Delete Published Dataset")
+            result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code,
+                                                         "text": json_delete_published_ds["message"]}
+        result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
 
         return json.dumps(result)
