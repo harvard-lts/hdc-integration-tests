@@ -223,8 +223,7 @@ pipeline {
                 script{
                   TESTS_PASSED = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/apps/healthcheck'",
                   returnStdout: true).trim()
-                  TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/DIMS/DVIngest'", 
-                  returnStdout: true).trim()
+                  TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/DIMS/DVIngest'", returnStdout: true).trim()
                   echo "${TESTS_PASSED}"
                   if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
                     error "QA main integration tests did not pass"
