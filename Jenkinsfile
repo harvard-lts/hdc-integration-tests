@@ -14,13 +14,6 @@ pipeline {
        }
       }
     }
-    stage('Build image') {
-      when { anyOf { branch 'main'; branch 'trial' } }
-      steps {
-        echo 'Building'
-        sh 'docker build -t registry.lts.harvard.edu/lts/${imageName} .'
-      }
-    }
 
     // trial is optional and only goes to dev
    stage('Build and Publish trial image') {
@@ -181,7 +174,8 @@ pipeline {
             } else {
                   echo "$GIT_HASH"
                   sh("docker pull registry.lts.harvard.edu/lts/${imageName}-dev:$GIT_HASH")
-                  qaImage = docker.tag ("registry.lts.harvard.edu/lts/${imageName}-dev:$GIT_HASH" "registry.lts.harvard.edu/lts/${imageName}-qa:$GIT_HASH")
+                  sh("docker tag registry.lts.harvard.edu/lts/${imageName}-dev:$GIT_HASH registry.lts.harvard.edu/lts/${imageName}-qa:$GIT_HASH")
+                  qaImage = docker.image("registry.lts.harvard.edu/lts/${imageName}-qa:$GIT_HASH")
                   docker.withRegistry(registryUri, registryCredentialsId){
                     qaImage.push()
                     qaImage.push('latest')
@@ -235,6 +229,7 @@ pipeline {
           }
       }
     }
+  }
    post {
         fixed {
             script {
