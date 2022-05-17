@@ -170,38 +170,38 @@ def define_resources(app):
         if not dataset_transferred:
             result["num_failed"] += 1
             result["tests_failed"].append("Check Dropbox Transfer")
-            result["Failed Dropbox Transfer"] = {"Dropbox Transfer Status": "Could not delete " + reformatted_id_stripped + "in dropbox " + dropbox_destination}
+            result["Failed Dropbox Transfer"] = {"Dropbox Transfer Status": "Could not find " + reformatted_id_stripped + " in dropbox " + dropbox_destination}
             return json.dumps(result)
 
         # Delete dataset from dropbox
-        dataset_deleted = False
-        for root, dirs, files in os.walk(dropbox_destination):
-            for dataset_dir in dirs:
-                if re.match(reformatted_id_stripped, dataset_dir):
-                    shutil.rmtree(os.path.join(root, dataset_dir))
-                    dataset_deleted = True
-                    result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
-
-        if not dataset_deleted:
-            result["num_failed"] += 1
-            result["tests_failed"].append("Delete Dataset From Dropbox")
-            result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
-                                                    reformatted_id_stripped + "in dropbox " + dropbox_destination}
-
-        # Delete dataset from S3
-
-        app.logger.debug("Delete dataset")
-        # Delete Published Dataset
-        delete_published_ds = requests.delete(
-            dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
-            headers=headers,
-            verify=False)
-        json_delete_published_ds = delete_published_ds.json()
-        if json_delete_published_ds["status"] != "OK":
-            result["num_failed"] += 1
-            result["tests_failed"].append("Delete Published Dataset")
-            result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code,
-                                                         "text": json_delete_published_ds["message"]}
-        result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
+        # dataset_deleted = False
+        # for root, dirs, files in os.walk(dropbox_destination):
+        #     for dataset_dir in dirs:
+        #         if re.match(reformatted_id_stripped, dataset_dir):
+        #             shutil.rmtree(os.path.join(root, dataset_dir))
+        #             dataset_deleted = True
+        #             result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
+        #
+        # if not dataset_deleted:
+        #     result["num_failed"] += 1
+        #     result["tests_failed"].append("Delete Dataset From Dropbox")
+        #     result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
+        #                                             reformatted_id_stripped + "in dropbox " + dropbox_destination}
+        #
+        # # Delete dataset from S3
+        #
+        # app.logger.debug("Delete dataset")
+        # # Delete Published Dataset
+        # delete_published_ds = requests.delete(
+        #     dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
+        #     headers=headers,
+        #     verify=False)
+        # json_delete_published_ds = delete_published_ds.json()
+        # if json_delete_published_ds["status"] != "OK":
+        #     result["num_failed"] += 1
+        #     result["tests_failed"].append("Delete Published Dataset")
+        #     result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code,
+        #                                                  "text": json_delete_published_ds["message"]}
+        # result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
 
         return json.dumps(result)
