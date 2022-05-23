@@ -1,5 +1,7 @@
+import re
+import shutil
 import time
-
+import boto3
 import requests
 from flask_restx import Resource, Api
 from flask import render_template
@@ -53,6 +55,10 @@ def define_resources(app):
         result = {"num_failed": num_failed_tests, "tests_failed": tests_failed, "info": {}}
         dataverse_endpoint = os.environ.get('DATAVERSE_ENDPOINT')
         admin_user_token = os.environ.get('ADMIN_USER_API_TOKEN')
+        dataverse_s3_access_id = os.environ.get('AWS_ACCESS_KEY_ID')
+        dataverse_s3_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        s3_bucket_name = os.environ.get('S3_BUCKET_NAME')
+        dropbox_destination = os.environ.get('DROPBOX_DESTINATION')
 
         app.logger.debug("Loading dataset dictionary")
         with open('/home/appuser/test_data/dataset-finch1.json') as dataset:
@@ -76,6 +82,7 @@ def define_resources(app):
             result["tests_failed"].append("Create Dataset")
             result["Failed Create Dataset"] = {"status_code": create_dataset.status_code,
                                                "text": json_create_dataset["message"]}
+            return json.dumps(result)
         dataset_id = json_create_dataset["data"]["id"]
         persistent_id = json_create_dataset["data"]["persistentId"]
         result["info"]["persistentId"] = persistent_id
@@ -113,10 +120,79 @@ def define_resources(app):
             result["tests_failed"].append("Publish Dataset")
             result["Failed Publish Dataset"] = {"status_code": publish_dataset.status_code,
                                                 "text": json_publish_dataset["message"]}
+            return json.dumps(result)
         result["info"]["Publish Dataset"] = {"status_code": publish_dataset.status_code}
 
         # Another wait for safe measure
         time.sleep(3.0)
+
+        app.logger.debug("Check S3 for exported dataset")
+        # Check S3 Bucket for dataset export - remove this because trasfer service will delete it
+        session = boto3.Session(
+            aws_access_key_id=dataverse_s3_access_id,
+            aws_secret_access_key=dataverse_s3_secret_key)
+
+        # Then use the session to get the resource
+        s3 = session.resource('s3')
+
+        my_bucket = s3.Bucket(s3_bucket_name)
+
+        # Reformat persistent_id
+        reformatted_id = str(persistent_id).lower()
+        reformatted_id = reformatted_id.replace(":", "-")
+        reformatted_id = reformatted_id.replace(".", "-")
+        reformatted_id = reformatted_id.replace("/", "-")
+        reformatted_id = reformatted_id + "/"
+
+        export_successful = False
+        for my_bucket_object in my_bucket.objects.all():
+            if re.match(reformatted_id, my_bucket_object.key):
+                export_successful = True
+                result["info"]["Check S3"] = {"Export Status": "Found export id " + reformatted_id}
+
+        if not export_successful:
+            result["num_failed"] += 1
+            result["tests_failed"].append("Check S3")
+            result["Failed Check S3"] = {"Export Status": "Could not find export id " + reformatted_id}
+            return json.dumps(result)
+
+        time.sleep(5.0)
+
+        reformatted_id_stripped = reformatted_id.strip('/')
+        app.logger.debug("Check dropbox for exported dataset")
+        # Check dropbox for export
+        dataset_transferred = False
+        for root, dirs, files in os.walk(dropbox_destination):
+            for dataset_dir in dirs:
+                app.logger.debug("checking dir: " + dataset_dir + " comparing to: " + reformatted_id_stripped)
+                if re.match(reformatted_id_stripped, dataset_dir):
+                    dataset_transferred = True
+                    result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(root, dataset_dir))}
+
+        if not dataset_transferred:
+            result["num_failed"] += 1
+            result["tests_failed"].append("Check Dropbox Transfer")
+            result["Failed Dropbox Transfer"] = {"Dropbox Transfer Status": "Could not find " + reformatted_id_stripped + " in dropbox " + dropbox_destination}
+            return json.dumps(result)
+
+        # Delete dataset from dropbox if in dropbox
+        if dataset_transferred:
+            app.logger.debug("Delete test dataset from dropbox")
+            dataset_deleted = False
+            for root, dirs, files in os.walk(dropbox_destination):
+                for dataset_dir in dirs:
+                    if re.match(reformatted_id_stripped, dataset_dir):
+                        shutil.rmtree(os.path.join(root, dataset_dir))
+                        dataset_deleted = True
+                        result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
+
+            if not dataset_deleted:
+                result["num_failed"] += 1
+                result["tests_failed"].append("Delete Dataset From Dropbox")
+                result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
+                                                        reformatted_id_stripped + "in dropbox " + dropbox_destination}
+
+        # Delete dataset from S3
 
         app.logger.debug("Delete dataset")
         # Delete Published Dataset

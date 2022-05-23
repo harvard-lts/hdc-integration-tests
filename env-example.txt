@@ -6,6 +6,7 @@ APP_LOG_LEVEL=INFO
 
 DIMS_ENDPOINT=https://ltsds-cloud-dev-1.lib.harvard.edu:10580
 DTS_ENDPOINT=https://ltsds-cloud-dev-1.lib.harvard.edu:10581
+DROPBOX_DESTINATION=/drs2dev/drsfs/dropbox/dvndev/incoming
 
 # Dataverse Vars
 DATAVERSE_ENDPOINT=http://dvn-dev-hdc.lib.harvard.edu
@@ -17,3 +18,9 @@ MQ_TRANSFER_PORT=61614
 MQ_TRANSFER_USER=ims
 MQ_TRANSFER_PASSWORD=XXX
 MQ_TRANSFER_QUEUE_TRANSFER_READY=/queue/transfer-ready
+
+# S3 Creds
+S3_BUCKET_NAME=
+#Read-Write Credentials
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
