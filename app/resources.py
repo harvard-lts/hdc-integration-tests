@@ -163,12 +163,10 @@ def define_resources(app):
         app.logger.debug("Check dropbox for exported dataset")
         # Check dropbox for export
         dataset_transferred = False
-        for root, dirs, files in os.walk(dropbox_destination):
-            for dataset_dir in dirs:
-                app.logger.debug("checking dir: " + dataset_dir + " comparing to: " + reformatted_id_stripped)
-                if doi_dir_match.match(dataset_dir):
-                    dataset_transferred = True
-                    result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(root, dataset_dir))}
+        app.logger.debug("checking dir: " + dropbox_destination + "/" + reformatted_id_stripped)
+        if os.path.exists(os.path.join(dropbox_destination, reformatted_id_stripped)):
+            dataset_transferred = True
+            result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(dropbox_destination, dataset_dir))}
 
         if not dataset_transferred:
             result["num_failed"] += 1
