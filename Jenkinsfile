@@ -31,7 +31,7 @@ pipeline {
               }
             } else {
                   echo "$GIT_HASH"
-                  def devImage = docker.build("registry.lts.harvard.edu/lts/${imageName}-dev:${GIT_HASH}")
+                  def devImage = docker.build("registry.lts.harvard.edu/lts/${imageName}-dev:$GIT_HASH")
                   docker.withRegistry(registryUri, registryCredentialsId){
                     // push the dev with hash image
                     devImage.push()
