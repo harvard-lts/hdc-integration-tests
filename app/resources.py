@@ -159,13 +159,14 @@ def define_resources(app):
         time.sleep(5.0)
 
         reformatted_id_stripped = reformatted_id.strip('/')
+        doi_dir_match = re.compile(reformatted_id_stripped)
         app.logger.debug("Check dropbox for exported dataset")
         # Check dropbox for export
         dataset_transferred = False
         for root, dirs, files in os.walk(dropbox_destination):
             for dataset_dir in dirs:
                 app.logger.debug("checking dir: " + dataset_dir + " comparing to: " + reformatted_id_stripped)
-                if re.match(reformatted_id_stripped, dataset_dir):
+                if doi_dir_match.match(dataset_dir):
                     dataset_transferred = True
                     result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(root, dataset_dir))}
 
@@ -178,15 +179,9 @@ def define_resources(app):
         # Delete dataset from dropbox if in dropbox
         if dataset_transferred:
             app.logger.debug("Delete test dataset from dropbox")
-            dataset_deleted = False
-            for root, dirs, files in os.walk(dropbox_destination):
-                for dataset_dir in dirs:
-                    if re.match(reformatted_id_stripped, dataset_dir):
-                        shutil.rmtree(os.path.join(root, dataset_dir))
-                        dataset_deleted = True
-                        result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
-
-            if not dataset_deleted:
+            if shutil.rmtree(os.path.join(dropbox_destination, reformatted_id)):
+                result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
+            else:
                 result["num_failed"] += 1
                 result["tests_failed"].append("Delete Dataset From Dropbox")
                 result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
