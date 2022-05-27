@@ -5,7 +5,7 @@ import boto3
 import requests
 from flask_restx import Resource, Api
 from flask import render_template
-import os, json
+import os, os.path, json
 
 
 def define_resources(app):
@@ -162,12 +162,10 @@ def define_resources(app):
         app.logger.debug("Check dropbox for exported dataset")
         # Check dropbox for export
         dataset_transferred = False
-        for root, dirs, files in os.walk(dropbox_destination):
-            for dataset_dir in dirs:
-                app.logger.debug("checking dir: " + dataset_dir + " comparing to: " + reformatted_id_stripped)
-                if re.match(reformatted_id_stripped, dataset_dir):
-                    dataset_transferred = True
-                    result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(root, dataset_dir))}
+        
+        if os.path.exists(os.path.join(dropbox_destination, reformatted_id_stripped)):
+            dataset_transferred = True
+            result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(dropbox_destination, reformatted_id_stripped))}
 
         if not dataset_transferred:
             result["num_failed"] += 1
@@ -185,15 +183,15 @@ def define_resources(app):
                         shutil.rmtree(os.path.join(root, dataset_dir))
                         dataset_deleted = True
                         result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
-
+ 
             if not dataset_deleted:
                 result["num_failed"] += 1
                 result["tests_failed"].append("Delete Dataset From Dropbox")
                 result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
                                                         reformatted_id_stripped + "in dropbox " + dropbox_destination}
-
+ 
         # Delete dataset from S3
-
+ 
         app.logger.debug("Delete dataset")
         # Delete Published Dataset
         delete_published_ds = requests.delete(
