@@ -31,7 +31,7 @@ pipeline {
               }
             } else {
                   echo "$GIT_HASH"
-                  def devImage = docker.build("registry.lts.harvard.edu/lts/${imageName}-dev:$GIT_HASH")
+                  devImage = docker.build("registry.lts.harvard.edu/lts/${imageName}-dev:$GIT_HASH")
                   docker.withRegistry(registryUri, registryCredentialsId){
                     // push the dev with hash image
                     devImage.push()
@@ -63,31 +63,31 @@ pipeline {
           }
       }
     }
-    stage('TrialDevIntegrationTest') {
-      when {
-          branch 'trial'
-        }
-      steps {
-          echo "Running integration tests on dev"
-          script {
-              sshagent(credentials : ['hgl_svcupd']) {
-                script{
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
-                  returnStdout: true).trim()
-                  TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/DIMS/DVIngest'",
-                  returnStdout: true).trim()
-                  echo "${TESTS_PASSED}"
-                  echo "${TESTS_PASSED_2}"
-                  if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
-                    error "Dev trial integration tests did not pass"
-                  } else {
-                    echo "All test passed!"
-                  }
-                }
-              }
-          }
-      }
-    }
+//     stage('TrialDevIntegrationTest') {
+//       when {
+//           branch 'trial'
+//         }
+//       steps {
+//           echo "Running integration tests on dev"
+//           script {
+//               sshagent(credentials : ['hgl_svcupd']) {
+//                 script{
+//                   TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
+//                   returnStdout: true).trim()
+//                   TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/DIMS/DVIngest'",
+//                   returnStdout: true).trim()
+//                   echo "${TESTS_PASSED}"
+//                   echo "${TESTS_PASSED_2}"
+//                   if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
+//                     error "Dev trial integration tests did not pass"
+//                   } else {
+//                     echo "All test passed!"
+//                   }
+//                 }
+//               }
+//           }
+//       }
+//     }
    stage('Build and Publish dev image') {
       when {
             branch 'main'
@@ -135,32 +135,32 @@ pipeline {
           }
       }
     }
-    stage('MainDevIntegrationTest') {
-      when {
-          branch 'main'
-        }
-      steps {
-          echo "Running integration tests on dev"
-          script {
-              sshagent(credentials : ['hgl_svcupd']) {
-                script{
-                  // TODO: Handle multiple curl commands more elegantly
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
-                  returnStdout: true).trim()
-                  TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/DIMS/DVIngest'",
-                  returnStdout: true).trim()
-                  echo "${TESTS_PASSED}"
-                  echo "${TESTS_PASSED_2}"
-                  if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
-                    error "Dev main integration tests did not pass"
-                  } else {
-                    echo "All test passed!"
-                  }
-                }
-              }
-          }
-      }
-    }
+//     stage('MainDevIntegrationTest') {
+//       when {
+//           branch 'main'
+//         }
+//       steps {
+//           echo "Running integration tests on dev"
+//           script {
+//               sshagent(credentials : ['hgl_svcupd']) {
+//                 script{
+//                   // TODO: Handle multiple curl commands more elegantly
+//                   TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
+//                   returnStdout: true).trim()
+//                   TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/DIMS/DVIngest'",
+//                   returnStdout: true).trim()
+//                   echo "${TESTS_PASSED}"
+//                   echo "${TESTS_PASSED_2}"
+//                   if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
+//                     error "Dev main integration tests did not pass"
+//                   } else {
+//                     echo "All test passed!"
+//                   }
+//                 }
+//               }
+//           }
+//       }
+//     }
     stage('Publish main qa image') {
       when {
             branch 'main'
@@ -205,30 +205,30 @@ pipeline {
           }
       }
     }
-    stage('MainQAIntegrationTest') {
-      when {
-          branch 'main'
-        }
-      steps {
-          echo "Running integration tests on QA"
-          script {
-              sshagent(credentials : ['qatest']) {
-                script{
-                  TESTS_PASSED = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/apps/healthcheck'",
-                  returnStdout: true).trim()
-                  TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/DIMS/DVIngest'", returnStdout: true).trim()
-                  echo "${TESTS_PASSED}"
-                  echo "${TESTS_PASSED_2}"
-                  if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
-                    error "QA main integration tests did not pass"
-                  } else {
-                    echo "All test passed!"
-                  }
-                }
-              }
-          }
-      }
-    }
+//     stage('MainQAIntegrationTest') {
+//       when {
+//           branch 'main'
+//         }
+//       steps {
+//           echo "Running integration tests on QA"
+//           script {
+//               sshagent(credentials : ['qatest']) {
+//                 script{
+//                   TESTS_PASSED = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/apps/healthcheck'",
+//                   returnStdout: true).trim()
+//                   TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.QA_SERVER} 'curl -k https://${env.CLOUD_QA}:10582/DIMS/DVIngest'", returnStdout: true).trim()
+//                   echo "${TESTS_PASSED}"
+//                   echo "${TESTS_PASSED_2}"
+//                   if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
+//                     error "QA main integration tests did not pass"
+//                   } else {
+//                     echo "All test passed!"
+//                   }
+//                 }
+//               }
+//           }
+//       }
+//     }
   }
    post {
         fixed {
@@ -259,6 +259,7 @@ pipeline {
    environment {
     imageName = 'int-tests'
     stackName = 'HDC3A'
+    // projName is the directory name for the project on the servers for it's docker/config files
     projName = 'hdc3a'
     registryCredentialsId = "${env.REGISTRY_ID}"
     registryUri = 'https://registry.lts.harvard.edu'
