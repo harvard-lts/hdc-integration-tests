@@ -173,17 +173,17 @@ def define_resources(app):
             result["tests_failed"].append("Check Dropbox Transfer")
             result["Failed Dropbox Transfer"] = {"Dropbox Transfer Status": "Could not find " + reformatted_id_stripped + " in dropbox " + dropbox_destination}
             return json.dumps(result)
-
-        # Delete dataset from dropbox if in dropbox
-        if dataset_transferred:
-            app.logger.debug("Delete test dataset from dropbox")
-            if shutil.rmtree(os.path.join(dropbox_destination, reformatted_id)):
-                result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(dropbox_destination, reformatted_id))}
-            else:
-                result["num_failed"] += 1
-                result["tests_failed"].append("Delete Dataset From Dropbox")
-                result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
-                                                        reformatted_id_stripped + "in dropbox " + dropbox_destination}
+        #
+        # # Delete dataset from dropbox if in dropbox
+        # if dataset_transferred:
+        #     app.logger.debug("Delete test dataset from dropbox")
+        #     if shutil.rmtree(os.path.join(dropbox_destination, reformatted_id)):
+        #         result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(dropbox_destination, reformatted_id))}
+        #     else:
+        #         result["num_failed"] += 1
+        #         result["tests_failed"].append("Delete Dataset From Dropbox")
+        #         result["Failed Delete From Dropbox"] = {"Delete From Dropbox": "Could not delete " +
+        #                                                 reformatted_id_stripped + "in dropbox " + dropbox_destination}
 
         # Delete dataset from S3
 
