@@ -5,7 +5,7 @@ import boto3
 import requests
 from flask_restx import Resource, Api
 from flask import render_template
-import os, json
+import os, os.path, json
 
 
 def define_resources(app):
