@@ -166,7 +166,7 @@ def define_resources(app):
         app.logger.debug("checking dir: " + dropbox_destination + "/" + reformatted_id_stripped)
         if os.path.exists(os.path.join(dropbox_destination, reformatted_id_stripped)):
             dataset_transferred = True
-            result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(dropbox_destination, dataset_dir))}
+            result["info"]["Dropbox Transfer Status"] = {"Found Dataset at Path": str(os.path.join(dropbox_destination, reformatted_id_stripped))}
 
         if not dataset_transferred:
             result["num_failed"] += 1
@@ -178,7 +178,7 @@ def define_resources(app):
         if dataset_transferred:
             app.logger.debug("Delete test dataset from dropbox")
             if shutil.rmtree(os.path.join(dropbox_destination, reformatted_id)):
-                result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(root, dataset_dir))}
+                result["info"]["Delete Dataset From Dropbox"] = {"Deleted Dataset at Path": str(os.path.join(dropbox_destination, reformatted_id))}
             else:
                 result["num_failed"] += 1
                 result["tests_failed"].append("Delete Dataset From Dropbox")
