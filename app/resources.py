@@ -187,18 +187,18 @@ def define_resources(app):
 
         # Delete dataset from S3
 
-        app.logger.debug("Delete dataset")
-        # Delete Published Dataset
-        delete_published_ds = requests.delete(
-            dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
-            headers=headers,
-            verify=False)
-        json_delete_published_ds = delete_published_ds.json()
-        if json_delete_published_ds["status"] != "OK":
-            result["num_failed"] += 1
-            result["tests_failed"].append("Delete Published Dataset")
-            result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code,
-                                                         "text": json_delete_published_ds["message"]}
-        result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
+        # app.logger.debug("Delete dataset")
+        # # Delete Published Dataset
+        # delete_published_ds = requests.delete(
+        #     dataverse_endpoint + '/api/datasets/' + str(dataset_id) + '/destroy',
+        #     headers=headers,
+        #     verify=False)
+        # json_delete_published_ds = delete_published_ds.json()
+        # if json_delete_published_ds["status"] != "OK":
+        #     result["num_failed"] += 1
+        #     result["tests_failed"].append("Delete Published Dataset")
+        #     result["Failed Delete Published Dataset"] = {"status_code": delete_published_ds.status_code,
+        #                                                  "text": json_delete_published_ds["message"]}
+        # result["info"]["Delete Published Dataset"] = {"status_code": delete_published_ds.status_code}
 
         return json.dumps(result)
