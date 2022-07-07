@@ -68,6 +68,7 @@ pipeline {
           branch 'trial'
         }
       steps {
+          sh 'sleep 60'
           echo "Running integration tests on dev"
           script {
               sshagent(credentials : ['hgl_svcupd']) {
