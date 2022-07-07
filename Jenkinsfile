@@ -63,31 +63,31 @@ pipeline {
           }
       }
     }
-//     stage('TrialDevIntegrationTest') {
-//       when {
-//           branch 'trial'
-//         }
-//       steps {
-//           echo "Running integration tests on dev"
-//           script {
-//               sshagent(credentials : ['hgl_svcupd']) {
-//                 script{
-//                   TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
-//                   returnStdout: true).trim()
-//                   TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/DIMS/DVIngest'",
-//                   returnStdout: true).trim()
-//                   echo "${TESTS_PASSED}"
-//                   echo "${TESTS_PASSED_2}"
-//                   if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
-//                     error "Dev trial integration tests did not pass"
-//                   } else {
-//                     echo "All test passed!"
-//                   }
-//                 }
-//               }
-//           }
-//       }
-//     }
+    stage('TrialDevIntegrationTest') {
+      when {
+          branch 'trial'
+        }
+      steps {
+          echo "Running integration tests on dev"
+          script {
+              sshagent(credentials : ['hgl_svcupd']) {
+                script{
+                  TESTS_PASSED = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/apps/healthcheck'",
+                  returnStdout: true).trim()
+                  TESTS_PASSED_2 = sh (script: "ssh -t -t ${env.DEV_SERVER} 'curl -k https://${env.CLOUD_DEV}:10582/DIMS/DVIngest'",
+                  returnStdout: true).trim()
+                  echo "${TESTS_PASSED}"
+                  echo "${TESTS_PASSED_2}"
+                  if (!TESTS_PASSED.contains("\"num_failed\": 0") || !TESTS_PASSED_2.contains("\"num_failed\": 0")){
+                    error "Dev trial integration tests did not pass"
+                  } else {
+                    echo "All test passed!"
+                  }
+                }
+              }
+          }
+      }
+    }
    stage('Build and Publish dev image') {
       when {
             branch 'main'
