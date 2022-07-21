@@ -1,5 +1,5 @@
-# hdc-integration-tests
-This project will run the integration tests for the HDC 3a effort
+# dais-integration-tests
+This project will run the integration tests for the DAIS project
 
 The project has the following endpoints available:
 
@@ -20,7 +20,7 @@ Docker Compose
 ## Local Development Environment Setup Instructions
 
 ### 1: Clone the repository to a local directory
-```git clone git@github.com:harvard-lts/hdc-integration-tests.git```
+```git clone git@github.com:harvard-lts/dais-integration-tests.git```
 
 ### 2: Create app config
 
